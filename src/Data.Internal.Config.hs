@@ -48,23 +48,18 @@ checkPercentage ex ey z = do
 toPercent :: Int -> Double
 toPercent x = fromIntegral x / 100
 
-ask :: (Num a, Read a) => IO (EitherCE a)
-ask = eitherReadNum <$> getLine
+ask :: (Num a, Read a) => String -> IO (EitherCE a)
+ask question = do
+  putStr (question ++ ": ")
+  eitherReadNum <$> getLine
 
 askConfig :: IO (Either ConfigError Config)
 askConfig = do
-  putStr "sight: "
-  sight <- ask
-  putStr "max water: "
-  max_water <- ask
-  putStr "treasure likelihood: "
-  treasure_ll <- (>>= boundCheck 0 100) <$> ask
-  putStr "water likelihood: "
-  water_ll <- (>>= boundCheck 0 100) <$> ask
-  putStr "portal likelihood: "
-  portal_ll <- (>>= boundCheck 0 100) <$> ask
-  putStr "lava likelihood: "
-  lava1_ll <- (>>= boundCheck 0 100 >=> checkPercentage water_ll portal_ll) <$> ask
-  putStr "lava (adjacent) likelihood: "
-  lava2_ll <- (>>= boundCheck 0 100 >=> checkPercentage water_ll portal_ll) <$> ask
+  sight <- ask "sight"
+  max_water <- ask "max water"
+  treasure_ll <- (>>= boundCheck 0 100) <$> ask "treasure likelihood"
+  water_ll <- (>>= boundCheck 0 100) <$> ask "water likelihood"
+  portal_ll <- (>>= boundCheck 0 100) <$> ask "portal likelihood"
+  lava1_ll <- (>>= boundCheck 0 100 >=> checkPercentage water_ll portal_ll) <$> ask "lava likelihood"
+  lava2_ll <- (>>= boundCheck 0 100 >=> checkPercentage water_ll portal_ll) <$> ask "lava (adjacent) likelihood"
   pure $ Config <$> sight <*> max_water <*> treasure_ll <*> fmap toPercent water_ll <*> fmap toPercent portal_ll <*> fmap toPercent lava1_ll <*> fmap toPercent lava2_ll
