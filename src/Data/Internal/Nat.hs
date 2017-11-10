@@ -1,11 +1,11 @@
 module Data.Internal.Nat where
 
-newtype Nat = Nat Int
+newtype Nat = Nat Int deriving (Eq, Ord)
 
 instance Num Nat where
   fromInteger = Nat . fromInteger
   Nat i + Nat j = Nat (i + j)
-  (-) = error "not handled"
+  Nat i - Nat j = min 0 (Nat $ i - j)
   Nat i * Nat j = Nat (i * j)
   abs n = n
   signum (Nat n) = Nat (signum n)
@@ -18,6 +18,8 @@ instance Read Nat where
 instance Enum Nat where
   toEnum = Nat
   fromEnum (Nat n) = n
+  succ n = n + 1
+  pred n = max 0 (n-1)
 
 instance Bounded Nat where
   minBound = 0
