@@ -1,6 +1,6 @@
-module Data.Internal.Config ( Config(..)
-                            , askConfig
-                            ) where
+module Data.Config ( Config(..)
+                   , askConfig
+                   ) where
 
 import Control.Monad
 import System.Random (StdGen, mkStdGen)

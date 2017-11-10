@@ -1,4 +1,4 @@
-module Data.Internal.Player where
+module Data.Player where
 
 import Data.Internal.Nat
 
