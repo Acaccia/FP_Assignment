@@ -9,6 +9,7 @@ data Config = Config
   {
     sight       :: Int
   , max_water   :: Int
+  , seed        :: StdGen
   , treasure_ll :: Double
   , water_ll    :: Double
   , portal_ll   :: Double
@@ -57,9 +58,12 @@ askConfig :: IO (Either ConfigError Config)
 askConfig = do
   sight <- ask "sight"
   max_water <- ask "max water"
+  seed <- fmap mkStdGen <$> (ask "seed")
   treasure_ll <- (>>= boundCheck 0 100) <$> ask "treasure likelihood"
   water_ll <- (>>= boundCheck 0 100) <$> ask "water likelihood"
   portal_ll <- (>>= boundCheck 0 100) <$> ask "portal likelihood"
   lava1_ll <- (>>= boundCheck 0 100 >=> checkPercentage water_ll portal_ll) <$> ask "lava likelihood"
   lava2_ll <- (>>= boundCheck 0 100 >=> checkPercentage water_ll portal_ll) <$> ask "lava (adjacent) likelihood"
-  pure $ Config <$> sight <*> max_water <*> treasure_ll <*> fmap toPercent water_ll <*> fmap toPercent portal_ll <*> fmap toPercent lava1_ll <*> fmap toPercent lava2_ll
+  pure $ Config <$> sight <*> max_water <*> seed <*> treasure_ll
+    <*> fmap toPercent water_ll <*> fmap toPercent portal_ll
+    <*> fmap toPercent lava1_ll <*> fmap toPercent lava2_ll
