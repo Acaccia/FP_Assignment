@@ -1,6 +1,7 @@
-module Data.Internal.List2D (List2D(..), (!), set) where
+module Data.Internal.List2D (List2D(..), (!), set, Nat) where
 
 import Data.Internal.Nat
+import Data.Sequence     (Seq, viewl, (|>))
 
 newtype List2D a = List2D [[a]]
 

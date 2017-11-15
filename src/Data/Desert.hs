@@ -1,5 +1,5 @@
 {-# LANGUAGE MultiWayIf #-}
-module Desert (Tile, Desert, makeDesert) where
+module Data.Desert (Tile, Desert, makeDesert) where
 
 import Control.Monad.State
 import Data.Internal.List2D
