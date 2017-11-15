@@ -6,10 +6,8 @@ newtype List2D a = List2D [[a]]
 
 type Index = (Nat, Nat)
 
--- List2D
-
 instance Functor List2D where
-  fmap f (List2D l) = List2D $ (fmap f) <$> l
+  fmap f (List2D l) = List2D $ fmap f <$> l
 
 instance Show a => Show (List2D a) where
   show (List2D a) = show a

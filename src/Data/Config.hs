@@ -5,16 +5,15 @@ module Data.Config ( Config(..)
 import Control.Monad
 import System.Random (StdGen, mkStdGen)
 
-data Config = Config
-  {
-    sight       :: Int
-  , max_water   :: Int
-  , seed        :: StdGen
-  , treasure_ll :: Double
-  , water_ll    :: Double
-  , portal_ll   :: Double
-  , lava1_ll    :: Double
-  , lava2_ll    :: Double
+data Config = Config {
+    sight      :: Int
+  , maxWater   :: Int
+  , seed       :: StdGen
+  , treasureLL :: Double
+  , waterLL    :: Double
+  , portalLL   :: Double
+  , lava1LL    :: Double
+  , lava2LL    :: Double
   } deriving (Show)
 
 data ConfigError = OutOfBounds String String String
@@ -58,7 +57,7 @@ askConfig :: IO (Either ConfigError Config)
 askConfig = do
   sight <- ask "sight"
   max_water <- ask "max water"
-  seed <- fmap mkStdGen <$> (ask "seed")
+  seed <- fmap mkStdGen <$> ask "seed"
   treasure_ll <- (>>= boundCheck "treasure likelihood" 0 100) <$> ask "treasure likelihood"
   water_ll <- (>>= boundCheck "water likelihood" 0 100) <$> ask "water likelihood"
   portal_ll <- (>>= boundCheck "portal likelihood" 0 100) <$> ask "portal likelihood"

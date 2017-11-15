@@ -3,8 +3,8 @@ module Data.Player where
 import Data.Internal.Nat
 
 data Player = Player {
-    x_pos :: Nat
-  , y_pos :: Nat
+    xPos  :: Nat
+  , yPos  :: Nat
   , chest :: Nat
   , water :: Nat
   } deriving Show
@@ -12,10 +12,10 @@ data Player = Player {
 data Direction = U | D | L | R deriving Show
 
 move :: Direction -> Player -> Player
-move U p = p {x_pos = x_pos p - 1, water = water p - 1}
-move D p = p {x_pos = x_pos p + 1, water = water p - 1}
-move L p = p {y_pos = y_pos p - 1, water = water p - 1}
-move R p = p {y_pos = y_pos p + 1, water = water p - 1}
+move U p = p {xPos = xPos p - 1, water = water p - 1}
+move D p = p {xPos = xPos p + 1, water = water p - 1}
+move L p = p {yPos = yPos p - 1, water = water p - 1}
+move R p = p {yPos = yPos p + 1, water = water p - 1}
 
 addChest :: Player -> Player
 addChest p = p {chest = chest p + 1}

@@ -18,7 +18,7 @@ makeDesert t w p l ll g = List2D (headLine : tailLines)
 
     randomTile :: State (StdGen, Tile, [Tile]) Tile
     randomTile = do
-      (g, tileLeft, (tileUp : ts)) <- get
+      (g, tileLeft, tileUp : ts) <- get
       let (r, g') = random g
       let l' = if Lava `elem` [tileLeft, tileUp] then ll else l
       let p' = p + w
@@ -36,4 +36,4 @@ makeDesert t w p l ll g = List2D (headLine : tailLines)
     headLine = Sand False : evalState lineOfTiles (s, Sand False, repeat (Sand False))
 
     tailLines :: [[Tile]]
-    tailLines = evalState lineOfTiles <$> (zipWith3 (,,) seeds (repeat $ Sand False) (headLine : tailLines))
+    tailLines = evalState lineOfTiles <$> zip3 seeds (repeat $ Sand False) (headLine : tailLines)
