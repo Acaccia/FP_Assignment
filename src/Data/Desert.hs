@@ -1,8 +1,7 @@
 {-# LANGUAGE MultiWayIf #-}
-module Desert where
+module Desert (Tile, Desert, makeDesert) where
 
 import Control.Monad.State
-import Data.Bifunctor
 import Data.Internal.List2D
 import System.Random
 
@@ -37,3 +36,6 @@ makeDesert t w p l ll g = List2D (headLine : tailLines)
 
     tailLines :: [[Tile]]
     tailLines = evalState lineOfTiles <$> zip3 seeds (repeat $ Sand False) (headLine : tailLines)
+
+first :: (a -> b) -> (a, c) -> (b, c)
+first f (a, b) = (f a, b)
