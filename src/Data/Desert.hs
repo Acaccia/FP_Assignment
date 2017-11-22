@@ -4,6 +4,7 @@ module Data.Desert (Tile, Desert, makeDesert) where
 import Control.Monad.State
 import Data.Internal.List2D
 import System.Random
+import Data.Internal.List2D.BFS.Lazy
 
 data Tile = Sand Bool | Water | Lava | Portal deriving (Eq, Show)
 

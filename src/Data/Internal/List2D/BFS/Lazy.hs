@@ -21,4 +21,4 @@ bfsDistance target avoid pos ls = if ls ! pos == target then Just 0
                                        visited' = S.insert p visited
                        in if tile == target then pure (Just n)
                           else if tile `elem` avoid then put (t, visited') >> go
-                          else put (t >< fromList [(p', n+1) | d <- [minBound..maxBound], let p' = move d p, p' /= p], visited') >> go
+                          else put (t >< fromList [(p', n+1) | d <- [minBound..maxBound], let p' = move d p, p' /= p && p' `S.notMember` visited], visited') >> go
