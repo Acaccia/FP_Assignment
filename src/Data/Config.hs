@@ -1,9 +1,8 @@
 module Data.Config ( Config(..)
-                   , askConfig
                    ) where
 
-import Control.Monad
-import System.Random (StdGen, mkStdGen)
+import Control.Monad.Except
+import System.Random        (StdGen, mkStdGen)
 
 data Config = Config {
     sight      :: Int
@@ -25,46 +24,41 @@ instance Show ConfigError where
   show PercentageOver100   = "Sum of all percentages is above 100"
   show (NotANumber q)      = q ++ ": input is not a number"
 
-type EitherCE = Either ConfigError
+type ECIO = ExceptT ConfigError IO
 
-boundCheck :: (Ord a, Show a) => String -> a -> a -> a -> EitherCE a
-boundCheck q low up n = if n > low && n < up
-                        then Right n
-                        else Left $ OutOfBounds q (show low) (show up)
-
-eitherReadNum :: (Num a, Read a) => String -> String -> EitherCE a
+eitherReadNum :: (Read a) => String -> String -> ECIO a
 eitherReadNum s q = case reads s of
-  [(x, "")] -> Right x
-  _         -> Left $ NotANumber q
+  [(x, "")] -> pure x
+  _         -> throwError (NotANumber q)
 
-checkPercentage :: EitherCE Int -> EitherCE Int -> Int -> EitherCE Int
-checkPercentage ex ey z = do
-  x <- ex
-  y <- ey
-  if x + y + z <= 100
-    then Right z
-    else Left PercentageOver100
+boundCheck :: (Ord a, Show a) => String -> a -> a -> a -> ECIO a
+boundCheck q low up n =
+  if n > low && n < up then pure n
+  else throwError $ OutOfBounds q (show low) (show up)
+
+checkPercentage :: Double -> Double -> Double -> ECIO Double
+checkPercentage x y z =
+  if x + y + z <= 1 then pure z else throwError PercentageOver100
 
 toPercent :: Int -> Double
-toPercent x = fromIntegral x / 100
+toPercent = (/ 100) . fromIntegral
 
-ask :: (Num a, Read a) => String -> IO (EitherCE a)
+ask :: (Integral a, Read a) => String -> ECIO a
 ask question = do
-  putStr (question ++ ": ")
-  eitherReadNum question <$> getLine
+  liftIO $ putStr (question ++ ": ")
+  liftIO getLine >>= eitherReadNum question
 
-askConfig :: IO (Either ConfigError Config)
+askAndCheck :: (Integral a, Ord a, Read a, Show a) => String -> a -> a -> ECIO a
+askAndCheck q l u = ask q >>= boundCheck q l u
+
+askConfig :: ECIO Config
 askConfig = do
   sight <- ask "sight"
-  max_water <- ask "max water"
-  seed <- fmap mkStdGen <$> ask "seed"
-  treasure_ll <- (>>= boundCheck "treasure likelihood" 0 100) <$> ask "treasure likelihood"
-  water_ll <- (>>= boundCheck "water likelihood" 0 100) <$> ask "water likelihood"
-  portal_ll <- (>>= boundCheck "portal likelihood" 0 100) <$> ask "portal likelihood"
-  lava1_ll <- (>>= boundCheck "lava likelihood" 0 100 >=> checkPercentage water_ll portal_ll)
-              <$> ask "lava likelihood"
-  lava2_ll <- (>>= boundCheck "lava (adjacent) likelihood" 0 100 >=> checkPercentage water_ll portal_ll)
-              <$> ask "lava (adjacent) likelihood"
-  pure $ Config <$> sight <*> max_water <*> seed <*> treasure_ll
-    <*> fmap toPercent water_ll <*> fmap toPercent portal_ll
-    <*> fmap toPercent lava1_ll <*> fmap toPercent lava2_ll
+  maxWater <- ask "max water"
+  seed <- mkStdGen <$> ask "seed"
+  treasureLL <- toPercent <$> askAndCheck "treasure likelihood" 0 100
+  waterLL <- toPercent <$> askAndCheck "water likelihood" 0 100
+  portalLL <- toPercent <$> askAndCheck "portal likelihood" 0 100
+  lava1LL <- toPercent <$> askAndCheck "lava likelihood" 0 100 >>= checkPercentage waterLL portalLL
+  lava2LL <- toPercent <$> askAndCheck "lava (adjacent) likelihood" 0 100 >>= checkPercentage waterLL portalLL
+  pure $ Config sight maxWater seed treasureLL waterLL portalLL lava1LL lava2LL

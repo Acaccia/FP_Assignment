@@ -3,8 +3,8 @@ module Data.Desert (Tile, Desert, makeDesert) where
 
 import Control.Monad.State
 import Data.Internal.List2D
-import System.Random
 import Data.Internal.List2D.BFS.Lazy
+import System.Random
 
 data Tile = Sand Bool | Water | Lava | Portal deriving (Eq, Show)
 
@@ -25,7 +25,7 @@ makeDesert t w p l ll g = List2D (headLine : tailLines)
       let (tile, gg) = if | r < w      -> (Water, g')
                           | r < p'     -> (Portal, g')
                           | r < p' + l -> (Lava, g')
-                          | otherwise  -> first (Sand . (< t)) $ random g'
+                          | otherwise  -> let (r, g'') = random g' in (Sand (r < t), g'')
       put (gg, tile, ts)
       pure tile
 
@@ -37,6 +37,3 @@ makeDesert t w p l ll g = List2D (headLine : tailLines)
 
     tailLines :: [[Tile]]
     tailLines = evalState lineOfTiles <$> zip3 seeds (repeat $ Sand False) (headLine : tailLines)
-
-first :: (a -> b) -> (a, c) -> (b, c)
-first f (a, b) = (f a, b)
