@@ -1,5 +1,5 @@
-module Data.Config ( Config(..)
-                   ) where
+{-# LANGUAGE LambdaCase #-}
+module Data.Config (Config(..), askConfigUntilUserBecomesClever) where
 
 import Control.Monad.Except
 import System.Random        (StdGen, mkStdGen)
@@ -21,13 +21,13 @@ data ConfigError = OutOfBounds String String String
 
 instance Show ConfigError where
   show (OutOfBounds q l u) = q ++ ": value is out of bounds [" ++ l ++ " - " ++ u ++ "]"
-  show PercentageOver100   = "Sum of all percentages is above 100"
+  show PercentageOver100   = "Sum of all percentages is above 100%"
   show (NotANumber q)      = q ++ ": input is not a number"
 
 type ECIO = ExceptT ConfigError IO
 
-eitherReadNum :: (Read a) => String -> String -> ECIO a
-eitherReadNum s q = case reads s of
+eitherReadNum :: (Read a, Integral a) => String -> String -> ECIO a
+eitherReadNum q s = case reads s of
   [(x, "")] -> pure x
   _         -> throwError (NotANumber q)
 
@@ -44,9 +44,8 @@ toPercent :: Int -> Double
 toPercent = (/ 100) . fromIntegral
 
 ask :: (Integral a, Read a) => String -> ECIO a
-ask question = do
-  liftIO $ putStr (question ++ ": ")
-  liftIO getLine >>= eitherReadNum question
+ask question = liftIO (putStr (question ++ ": ") >> getLine)
+  >>= eitherReadNum question
 
 askAndCheck :: (Integral a, Ord a, Read a, Show a) => String -> a -> a -> ECIO a
 askAndCheck q l u = ask q >>= boundCheck q l u
@@ -62,3 +61,8 @@ askConfig = do
   lava1LL <- toPercent <$> askAndCheck "lava likelihood" 0 100 >>= checkPercentage waterLL portalLL
   lava2LL <- toPercent <$> askAndCheck "lava (adjacent) likelihood" 0 100 >>= checkPercentage waterLL portalLL
   pure $ Config sight maxWater seed treasureLL waterLL portalLL lava1LL lava2LL
+
+askConfigUntilUserBecomesClever :: IO Config
+askConfigUntilUserBecomesClever = runExceptT askConfig >>= \case
+  Left err     -> print err >> askConfigUntilUserBecomesClever
+  Right config -> pure config
