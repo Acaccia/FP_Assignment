@@ -22,13 +22,21 @@ set a (i, j) (List2D l2d) =
       (xxs, _:yys) = splitAt (fromEnum j) y
   in List2D $ xs ++ [xxs ++ [a] ++ yys] ++ ys
 
---observable :: Show a => Index -> Nat -> List2D a -> String
+--observe :: Show a => Index -> Nat -> List2D a -> String
 observe (x, y) sight (List2D grid) = xs
   where x' = fromEnum x
         y' = fromEnum y
         sight' = fromEnum sight
-        xxs = take (2*sight' + 1) $ drop (x' - sight') grid
-        xs = zipWith3 (\tk dr xs -> take tk $ drop dr xs) ([1,3..2*sight'+1] ++ [2*sight'-1, 2*sight'-3..]) ([sight',sight'-1..0] ++ [1..sight']) xxs
+        xxs = dropAndTake (x'-sight') (2*sight + 1) grid
+        xs = zipWith takeAround ([0..sight'] ++ [sight'-1, sight'-2..]) xxs
+
+        dropAndTake :: Int -> Int -> [[a]] -> [[a]]
+        dropAndTake d t xs = if d < 0
+          then replicate (abs d) [] ++ take (t+d) xs
+          else take t (drop d xs)
+
+        takeAround :: Int -> [a] -> [a]
+        takeAround n = drop (y'-n) . take (y'+n+1)
 
 test :: List2D (Nat, Nat)
 test = List2D [[(x, y) | y <- [0..]] | x <- [0..]]
