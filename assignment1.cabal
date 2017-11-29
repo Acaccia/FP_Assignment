@@ -25,3 +25,5 @@ executable assignment1
                      , mtl
                      , random
                      , containers
+                     , lens
+                     , parallel

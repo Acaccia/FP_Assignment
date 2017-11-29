@@ -1,18 +1,27 @@
 {-# LANGUAGE MultiWayIf #-}
-module Data.Desert (Tile, Desert, makeDesert) where
+module Data.Desert (Tile(..), Desert, makeDesert, observe, (!), set, Index, openChest) where
 
 import Control.Monad.State
 import Data.Internal.List2D
 import Data.Internal.List2D.BFS.Lazy
 import System.Random
 
-data Tile = Sand Bool | Water | Lava | Portal deriving (Eq, Show)
+data Tile = Sand Bool | Water | Lava | Portal deriving (Eq)
+
+instance Show Tile where
+  show (Sand True)  = "?"
+  show (Sand False) = "."
+  show Water        = "_"
+  show Lava         = "~"
+  show Portal       = "!"
+
+openChest :: (Nat, Nat) -> Desert -> Desert
+openChest = set (Sand False)
 
 type Desert = List2D Tile
 
 makeDesert :: Double -> Double -> Double -> Double -> Double -> StdGen -> Desert
-makeDesert t w p l ll g = List2D (headLine : tailLines)
-  where
+makeDesert t w p l ll g = List2D (headLine : tailLines) where
 
     (s:seeds) = mkStdGen <$> randoms g
 
@@ -37,3 +46,25 @@ makeDesert t w p l ll g = List2D (headLine : tailLines)
 
     tailLines :: [[Tile]]
     tailLines = evalState lineOfTiles <$> zip3 seeds (repeat $ Sand False) (headLine : tailLines)
+
+observe :: (Nat, Nat) -> Int -> Desert -> String
+observe (x, y) sight (List2D grid) = unlines formatted
+  where x' = fromEnum x
+        y' = fromEnum y
+        goodLines = dropAndTake (x'-sight) (2*sight + 1) grid
+        goodCols = zipWith takeAround ([0..sight] ++ [sight-1, sight-2..]) goodLines
+        formatted = zipWith format ([sight, sight-1..0] ++ [1..]) goodCols
+
+        dropAndTake :: Int -> Int -> [[a]] -> [[a]]
+        dropAndTake d t xs = if d < 0
+          then replicate (abs d) [] ++ take (t+d) xs
+          else take t (drop d xs)
+
+        takeAround :: Int -> [a] -> [a]
+        takeAround n = drop (y'-n) . take (y'+n+1)
+
+        format :: Show a => Int -> [a] -> String
+        format n xs = replicate n ' ' ++ concatMap show xs
+
+testDesert :: Desert
+testDesert = makeDesert 0.3 0.1 0.05 0.1 0.5 (mkStdGen 42)
