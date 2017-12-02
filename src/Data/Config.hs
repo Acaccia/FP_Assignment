@@ -22,13 +22,13 @@ data ConfigError = OutOfBounds String String String
 instance Show ConfigError where
   show (OutOfBounds q l u) = q ++ ": value is out of bounds [" ++ l ++ " - " ++ u ++ "]"
   show PercentageOver100   = "Sum of all percentages is above 100%"
-  show (NotANumber q)      = q ++ ": input is not a number"
+  show (NotANumber q)      = q ++ ": input is not an integer above 0"
 
 type ECIO = ExceptT ConfigError IO
 
 eitherReadNum :: (Read a, Integral a) => String -> String -> ECIO a
 eitherReadNum q s = case reads s of
-  [(x, "")] -> pure x
+  [(x, "")] -> if x > 0 then pure x else throwError (NotANumber q)
   _         -> throwError (NotANumber q)
 
 boundCheck :: (Ord a, Show a) => String -> a -> a -> a -> ECIO a

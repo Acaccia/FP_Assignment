@@ -5,15 +5,19 @@ import Control.Monad.State
 import Data.Internal.List2D
 import Data.Internal.List2D.BFS.Lazy
 import System.Random
+import Text.Printf                   (printf)
 
 data Tile = Sand Bool | Water | Lava | Portal deriving (Eq)
 
 instance Show Tile where
-  show (Sand True)  = "?"
-  show (Sand False) = "."
-  show Water        = "_"
-  show Lava         = "~"
-  show Portal       = "!"
+  show = pure . toChar
+
+toChar :: Tile -> Char
+toChar (Sand True)  = '?'
+toChar (Sand False) = '.'
+toChar Water        = '_'
+toChar Lava         = '~'
+toChar Portal       = '!'
 
 openChest :: (Nat, Nat) -> Desert -> Desert
 openChest = set (Sand False)
@@ -53,7 +57,7 @@ observe (x, y) sight (List2D grid) = unlines formatted
         y' = fromEnum y
         goodLines = dropAndTake (x'-sight) (2*sight + 1) grid
         goodCols = zipWith takeAround ([0..sight] ++ [sight-1, sight-2..]) goodLines
-        formatted = zipWith format ([sight, sight-1..0] ++ [1..]) goodCols
+        formatted = zipWith format ([sight+1, sight+2..sight*2] ++ [sight*2+1, sight*2..]) goodCols
 
         dropAndTake :: Int -> Int -> [[a]] -> [[a]]
         dropAndTake d t xs = if d < 0
@@ -63,8 +67,8 @@ observe (x, y) sight (List2D grid) = unlines formatted
         takeAround :: Int -> [a] -> [a]
         takeAround n = drop (y'-n) . take (y'+n+1)
 
-        format :: Show a => Int -> [a] -> String
-        format n xs = replicate n ' ' ++ concatMap show xs
+        format :: Int -> [Tile] -> String
+        format n = printf ("% " ++ show n ++ "s") . fmap toChar
 
 testDesert :: Desert
 testDesert = makeDesert 0.3 0.1 0.05 0.1 0.5 (mkStdGen 42)

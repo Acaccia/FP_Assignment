@@ -29,6 +29,11 @@ makeLenses ''InGameConfig
 
 data Situation = Win Int | Lost | Ongoing
 
+instance Show Situation where
+  show (Win n) = "You win: " ++ show n ++ " treasures found!"
+  show Lost    = "You lose!"
+  show Ongoing = ""
+
 initPlay :: Conf.Config -> Play
 initPlay (Conf.Config _ mw seed t w p l ll) =
    Play (Player (0, 0) 0 mw) (makeDesert t w p l ll seed)
@@ -81,3 +86,13 @@ printGame = do
     liftIO (putStrLn $ "Closest water: " ++ show closestW)
     liftIO (putStrLn $ "Closest treasure: " ++ show closestT)
     liftIO (putStrLn $ "Closest portal: " ++ show closestP)
+
+gameLoop :: (MonadIO m, MonadReader InGameConfig m, MonadState Play m) => m ()
+gameLoop = do
+  printGame
+  liftIO getChar >>= movePlayer
+  reactToTile >>= \case
+    Ongoing -> checkWater >>= \case
+      Ongoing -> gameLoop
+      Lost    -> liftIO (print Lost)
+    other -> liftIO (print other)
