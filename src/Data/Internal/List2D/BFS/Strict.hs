@@ -20,5 +20,5 @@ bfsDistance !target !avoid !pos ls = evalState go (singleton (pos, 0), S.empty)
                   ((!p, !n) :< t) -> let !tile = ls ! p
                                          !visited' = S.insert p visited
                        in if tile == target then pure (Just n)
-                          else if tile `elem` avoid then put (t, visited') >> go
-                          else put (t >< fromList [(p', n+1) | d <- [minBound..maxBound], let p' = move d p, p' /= p && p' `S.notMember` visited], visited') >> go
+                          else if tile `elem` avoid then put (t, visited') *> go
+                          else put (t >< fromList [(p', n+1) | d <- [minBound..maxBound], let p' = move d p, p' /= p && p' `S.notMember` visited], visited') *> go

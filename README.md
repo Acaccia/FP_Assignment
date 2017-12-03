@@ -21,7 +21,7 @@ At first, a menu will ask the player for
  1. **sight**: it represents the number of tiles the player can see in all directions.
  2. **max water**: maximal quantity of water supplies (when this reach 0, the player instantly dies).
  3. **seed**: a number that is used to generate the desert.
- 4. **treasure likelihood**: percentage of chance that a treasure is hidden in a Sand tile.
+ 4. **treasure likelihood**: percentage (1 - 99) of chance that a treasure is hidden in a Sand tile.
  4. **XXX likelihood**: a percentage (1 - 99) representing the probability of founding a XXX tile in the desert (lava adjacent is for tiles probability to find a lava tile next to another lava tile).
 
 This menu will repeat itself until the player specify a valid configuration.

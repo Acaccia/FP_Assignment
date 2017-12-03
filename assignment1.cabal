@@ -2,7 +2,7 @@ name:                assignment1
 version:             0.1.0.0
 synopsis:            Programming assignment for the VUB's FP course
 -- description:
-homepage:            https://github.com/Acaccia/assignment1#readme
+homepage:            https://github.com/Acaccia/FP_Assignment
 license:             BSD3
 license-file:        LICENSE
 author:              Anthony Caccia
@@ -16,7 +16,7 @@ extra-source-files:  README.md
 executable DesertExplorer
   hs-source-dirs:      src
   main-is:             Main.hs
--- ghc-options:         -rtsopts -prof -fprof-auto
+  ghc-options:         -rtsopts -threaded -O2 -with-rtsopts=-N
   other-modules:       Data.Desert
                      , Data.Internal.Direction
                      , Data.Internal.List2D.BFS.Lazy
