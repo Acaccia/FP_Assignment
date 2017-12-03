@@ -10,7 +10,8 @@ data Player = Player {
   } deriving Show
 
 move :: D.Direction -> Player -> Player
-move d p = p {pos = D.move d (pos p), water = water p - 1}
+move d p@(Player pos _ _) = let newPos = D.move d pos in
+  if newPos == pos then p else p {pos = newPos, water = water p - 1}
 
 addChest :: Player -> Player
 addChest p = p {chest = chest p + 1}

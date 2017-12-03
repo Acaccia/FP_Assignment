@@ -3,9 +3,8 @@ module Data.Desert (Tile(..), Desert, makeDesert, observe, (!), set, Index, open
 
 import Control.Monad.State
 import Data.Internal.List2D
-import Data.Internal.List2D.BFS.Lazy
 import System.Random
-import Text.Printf                   (printf)
+import Text.Printf          (printf)
 
 data Tile = Sand Bool | Water | Lava | Portal deriving (Eq)
 
@@ -13,11 +12,10 @@ instance Show Tile where
   show = pure . toChar
 
 toChar :: Tile -> Char
-toChar (Sand True)  = '?'
-toChar (Sand False) = '.'
-toChar Water        = '_'
-toChar Lava         = '~'
-toChar Portal       = '!'
+toChar (Sand _) = '.'
+toChar Water    = '_'
+toChar Lava     = '~'
+toChar Portal   = '!'
 
 openChest :: (Nat, Nat) -> Desert -> Desert
 openChest = set (Sand False)
@@ -52,7 +50,7 @@ makeDesert t w p l ll g = List2D (headLine : tailLines) where
     tailLines = evalState lineOfTiles <$> zip3 seeds (repeat $ Sand False) (headLine : tailLines)
 
 observe :: (Nat, Nat) -> Int -> Desert -> String
-observe (x, y) sight (List2D grid) = unlines formatted
+observe (x, y) sight (List2D grid) = unlines $ putPlayer formatted
   where x' = fromEnum x
         y' = fromEnum y
         goodLines = dropAndTake (x'-sight) (2*sight + 1) grid
@@ -69,6 +67,12 @@ observe (x, y) sight (List2D grid) = unlines formatted
 
         format :: Int -> [Tile] -> String
         format n = printf ("% " ++ show n ++ "s") . fmap toChar
+
+        putPlayer :: [String] -> [String]
+        putPlayer grid =
+          let (xs, y:ys) = splitAt sight grid
+              (xxs, _:yys) = splitAt sight y
+          in xs ++ [xxs ++ "P" ++ yys] ++ ys
 
 testDesert :: Desert
 testDesert = makeDesert 0.3 0.1 0.05 0.1 0.5 (mkStdGen 42)

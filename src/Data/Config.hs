@@ -64,5 +64,5 @@ askConfig = do
 
 askConfigUntilUserBecomesClever :: IO Config
 askConfigUntilUserBecomesClever = runExceptT askConfig >>= \case
-  Left err     -> print err >> askConfigUntilUserBecomesClever
+  Left err     -> print err *> askConfigUntilUserBecomesClever
   Right config -> pure config

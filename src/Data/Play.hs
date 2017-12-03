@@ -24,12 +24,12 @@ makeLenses ''Play
 data InGameConfig = IGConfig { _maxWater :: Int
                              , _sight    :: Int
                              }
-
 makeLenses ''InGameConfig
 
 data Situation = Win Int | Lost | Ongoing
 
 instance Show Situation where
+  show (Win 1) = "You win: 1 treasure found!"
   show (Win n) = "You win: " ++ show n ++ " treasures found!"
   show Lost    = "You lose!"
   show Ongoing = ""
@@ -54,13 +54,13 @@ reactToTile = do
   (! pos) <$> use desert >>= \case
     Sand True -> do desert %= openChest pos
                     player %= addChest
-                    pure Ongoing
+                    checkWater
     Water     -> do w <- view maxWater
                     player %= refillWater w
                     pure Ongoing
     Lava      -> pure Lost
     Portal    -> Win <$> uses player chest
-    _         -> pure Ongoing
+    _         -> checkWater
 
 checkWater :: MonadState Play m => m Situation
 checkWater = chk <$> uses player water
@@ -68,11 +68,10 @@ checkWater = chk <$> uses player water
         chk _ = Ongoing
 
 getClosest :: (Nat, Nat) -> Desert -> (Maybe Nat, Maybe Nat, Maybe Nat)
-getClosest pos d = runEval $ do
-  closestW <- rpar $ bfsDistance Water [Lava] pos d
-  closestT <- rpar $ bfsDistance (Sand True) [Lava] pos d
-  closestP <- rpar $ bfsDistance Portal [Lava] pos d
-  pure (closestW, closestT, closestP)
+getClosest pos d = runEval $ (,,)
+  <$> rpar (bfsDistance Water [Lava, Portal] pos d)
+  <*> rpar (bfsDistance (Sand True) [Lava, Portal] pos d)
+  <*> rpar (bfsDistance Portal [Lava] pos d)
 
 printGame :: (MonadIO m, MonadReader InGameConfig m, MonadState Play m) => m ()
 printGame = do
@@ -92,7 +91,5 @@ gameLoop = do
   printGame
   liftIO getChar >>= movePlayer
   reactToTile >>= \case
-    Ongoing -> checkWater >>= \case
-      Ongoing -> gameLoop
-      Lost    -> liftIO (print Lost)
+    Ongoing -> gameLoop
     other -> liftIO (print other)
